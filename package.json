@@ -1,6 +1,6 @@
 {
   "name": "@countinghouse/ch-access-github",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that never leaves the runtime.",
   "license": "Apache-2.0",
   "repository": {
@@ -14,12 +14,37 @@
     "node": ">=22.16"
   },
   "files": [
-    "README.md"
+    "api.json",
+    "schema.json",
+    "handlers/",
+    "lib/"
   ],
   "scripts": {
-    "test": "node -e \"const p=require('./package.json'); if (!/^@countinghouse\\/ch-/.test(p.name)) process.exit(1)\""
+    "test": "node --test \"test/*.test.js\"",
+    "validate": "node scripts/validate.js"
   },
   "countinghouse": {
-    "role": "part"
+    "role": "part",
+    "remotes": [
+      {
+        "name": "github",
+        "transport": "streamable-http",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "credential": {
+          "env": "COUNTINGHOUSE_GITHUB_TOKEN",
+          "fallbackEnv": "GITHUB_TOKEN",
+          "header": "Authorization",
+          "scheme": "Bearer"
+        }
+      }
+    ]
+  },
+  "devDependencies": {
+    "countinghouse": "git+https://github.com/mchen6/countinghouse.git#9e1cdb591f470ea502f060ed70ce244bdab633fe"
+  },
+  "allowScripts": {
+    "dtrace-provider": false,
+    "msgpackr-extract": false,
+    "sqlite3": false
   }
 }

@@ -2,9 +2,34 @@
 
 countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that never leaves the runtime.
 
-**Status: name reserved (2026-11-11).** The implementation lands here per
-the pack family's plan (Task 8 of `docs/superpowers/plans/2026-11-11-ch-packs-v1.md`
-in [ch-packs](https://github.com/mchen6/ch-packs)). Nothing to install yet.
+**Status: preview, waiting for the runtime's remotes (RC1-min).** Runs on
+[countinghouse](https://github.com/mchen6/countinghouse) once it can call a
+remote MCP server on a module's behalf. The `countinghouse.remotes`
+declaration in package.json is the pack plan's, and cannot be validated
+until that runtime exists. An access module of the countinghouse client
+packs: a `part`, loaded by a scenario and never listed to the model on its own.
+
+## What it does
+
+`ch-access-github/githubService` reads GitHub Actions through GitHub's MCP
+server (`https://api.githubcopilot.com/mcp/`, toolsets `actions,repos`),
+declared as the remote `github`. The token comes from
+`COUNTINGHOUSE_GITHUB_TOKEN` (or `GITHUB_TOKEN`), is held by the runtime,
+and never reaches this module.
+
+| Action | Input | Output |
+|---|---|---|
+| `listRuns` | `{repo, branch?, limit<=100}` | `{runs: [{runId, conclusion, commit, branch, createdAt, workflow, url}]}`, with GitHub's own conclusion (null while in progress) and every workflow |
+| `failedJobs` | `{repo, runId}` | `{jobs: [{jobId, name, conclusion, steps: [{name, conclusion}]}]}`, the failed and timed-out jobs, every page of them |
+| `jobLog` | `{repo, jobId}` | `{text, lines, bytes, expired, truncated}`. A log past retention or gone (410/404) is `expired: true`, not an error. Any other failure is `LOG_UNAVAILABLE`, with the server's text in `details.serverText` |
+| `runCommits` | `{repo, commit}` | `{commit, authorLogin}`: a GitHub login, never a name or an email |
+
+Every output object refuses fields it does not name. `lib/remote.js` is the
+one place a tool is named, so a rename on GitHub's side is one table entry.
+
+The tests run against responses recorded once from GitHub's server
+(`test/fixtures/mcp-results`, described in its README). Tokens, emails,
+names and log lines are scrubbed from them. No test calls GitHub.
 
 Part of the countinghouse client packs. The design, the plan and the
 acceptance tests live in [ch-packs](https://github.com/mchen6/ch-packs);
@@ -15,6 +40,7 @@ each package has its own repository (maintainer's decision, 2026-11-11).
 ```
 npm ci
 npm test
+npm run validate   # packs the module and runs countinghouse-validate on the tarball
 ```
 
 Pure JavaScript, Node 22.16 or later, no native module. CI runs on
