@@ -30,6 +30,9 @@
         "name": "github",
         "transport": "streamable-http",
         "url": "https://api.githubcopilot.com/mcp/",
+        "headers": {
+          "X-MCP-Toolsets": "actions,repos"
+        },
         "credential": {
           "env": "COUNTINGHOUSE_GITHUB_TOKEN",
           "fallbackEnv": "GITHUB_TOKEN",

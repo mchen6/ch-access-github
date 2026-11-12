@@ -28,7 +28,7 @@ test('every tool in the table is one the recorded server offers', () => {
 test('the package declares the GitHub remote exactly as the plan writes it', () => {
   assert.deepStrictEqual(require('../package.json').countinghouse, {
     role: 'part',
-    remotes: [{name: 'github', transport: 'streamable-http', url: 'https://api.githubcopilot.com/mcp/', credential: {env: 'COUNTINGHOUSE_GITHUB_TOKEN', fallbackEnv: 'GITHUB_TOKEN', header: 'Authorization', scheme: 'Bearer'}}]
+    remotes: [{name: 'github', transport: 'streamable-http', url: 'https://api.githubcopilot.com/mcp/', headers: {'X-MCP-Toolsets': 'actions,repos'}, credential: {env: 'COUNTINGHOUSE_GITHUB_TOKEN', fallbackEnv: 'GITHUB_TOKEN', header: 'Authorization', scheme: 'Bearer'}}]
   });
 });
 
