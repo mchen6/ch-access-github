@@ -31,9 +31,8 @@ The tests run against responses recorded once from GitHub's server
 (`test/fixtures/mcp-results`, described in its README). Tokens, emails,
 names and log lines are scrubbed from them. No test calls GitHub.
 
-Part of the countinghouse client packs. Each package has its own repository; the family's design, plan and
-acceptance tests are in a repository that stays private until the first
-release.
+Part of the countinghouse client packs. Each package has its own repository; the family's design, plan and acceptance
+tests are in [ch-packs](https://github.com/mchen6/ch-packs) (public).
 
 ## Development
 
