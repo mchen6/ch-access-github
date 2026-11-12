@@ -1,7 +1,7 @@
 {
   "name": "@countinghouse/ch-access-github",
   "version": "0.1.0",
-  "description": "countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that never leaves the runtime.",
+  "description": "countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that the runtime sends to GitHub and this module never sees.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

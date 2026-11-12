@@ -1,6 +1,6 @@
 # @countinghouse/ch-access-github
 
-countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that never leaves the runtime.
+countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that the runtime sends to GitHub and this module never sees.
 
 **Status: preview, waiting for the runtime's remotes (RC1-min).** Runs on
 [countinghouse](https://github.com/mchen6/countinghouse) once it can call a
@@ -31,9 +31,9 @@ The tests run against responses recorded once from GitHub's server
 (`test/fixtures/mcp-results`, described in its README). Tokens, emails,
 names and log lines are scrubbed from them. No test calls GitHub.
 
-Part of the countinghouse client packs. The design, the plan and the
-acceptance tests live in [ch-packs](https://github.com/mchen6/ch-packs);
-each package has its own repository (maintainer's decision, 2026-11-11).
+Part of the countinghouse client packs. Each package has its own repository; the family's design, plan and
+acceptance tests are in a repository that stays private until the first
+release.
 
 ## Development
 
