@@ -39,6 +39,14 @@ test('an empty page ends the walk even when total_count says more', async () => 
   assert.deepStrictEqual(ctx.calls.map((c) => c.args.page), [1, 2]);
 });
 
+// From /code-review medium on ch-access-github#1.
+test('a jobs list without a numeric total_count is REMOTE_ANSWER_INVALID, never a short list', async () => {
+  for (const total of [undefined, null, '4']) {
+    const page = {result: {content: [{type: 'text', text: JSON.stringify({jobs: {total_count: total, jobs: body('list_workflow_jobs-page').jobs.jobs}})}]}};
+    await assert.rejects(collectFailedJobs(fakeCtx({actions_list: page}), {owner: 'mchen6', repo: 'countinghouse', runId: '42775507169'}, 2), (e) => e.code === 'REMOTE_ANSWER_INVALID', JSON.stringify(total));
+  }
+});
+
 test('failedJobs validates its input', async () => {
   const ctx = fakeCtx({});
   const invalid = (err) => err.code === 'ARGUMENTS_INVALID';

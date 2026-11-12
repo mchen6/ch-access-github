@@ -8,11 +8,13 @@ module.exports = async (input, ctx) => {
   const where = parseRepo(input != null ? input.repo : null);
   if (where == null) throw invalid('repo must be "owner/name"');
   if (!isSha(input.commit)) throw invalid('commit must be a full 40-character commit SHA');
-  const {error, body} = await request(ctx, 'runCommits', {...where, sha: input.commit, perPage: 1});
-  // An unknown SHA: GitHub answers 404, or 422 "No commit found for SHA".
-  if (error != null && /\b(?:404|422)\b|No commit found/.test(error)) throw ctx.error('COMMIT_NOT_FOUND', `commit ${input.commit} is not in ${input.repo}`, {serverText: error});
+  // Only the fields read: names, emails and the message never cross into the module.
+  const {error, body} = await request(ctx, 'runCommits', {...where, sha: input.commit, perPage: 1, fields: ['sha', 'author']});
+  // An unknown SHA: GitHub answers 404 Not Found, or 422 "No commit found for SHA".
+  if (error != null && /\b404 Not Found\b|\b422 Unprocessable Entity\b|No commit found/.test(error)) throw ctx.error('COMMIT_NOT_FOUND', `commit ${input.commit} is not in ${input.repo}`, {serverText: error});
   if (error != null) throw ctx.error('REMOTE_FAILED', `GitHub's server could not read commit ${input.commit}`, {serverText: error});
-  const first = Array.isArray(body) ? body[0] : null;
+  if (!Array.isArray(body)) throw ctx.error('REMOTE_ANSWER_INVALID', `GitHub's server answered commit ${input.commit} with something that is not a list of commits`);
+  const first = body[0];
   if (first == null || first.sha !== input.commit) throw ctx.error('COMMIT_NOT_FOUND', `commit ${input.commit} is not in ${input.repo}`);
   const login = first.author != null && typeof first.author.login === 'string' ? first.author.login : null;
   return {output: {commit: first.sha, authorLogin: login}};

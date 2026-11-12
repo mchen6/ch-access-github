@@ -14,7 +14,8 @@ test('runCommits strips emails and keeps logins', async () => {
   assert.match(output.authorLogin, /^[A-Za-z0-9-]+$/);
   const text = JSON.stringify(output);
   assert.ok(!text.includes('removed@example.invalid') && !text.includes('Example Author') && !text.includes('@'));
-  assert.deepStrictEqual(ctx.calls, [{address: 'remote:github/list_commits', args: {owner: 'mchen6', repo: 'countinghouse', sha: SHA, perPage: 1}}]);
+  // Only the two fields read: the commit's names, emails and message never cross into the module.
+  assert.deepStrictEqual(ctx.calls, [{address: 'remote:github/list_commits', args: {owner: 'mchen6', repo: 'countinghouse', sha: SHA, perPage: 1, fields: ['sha', 'author']}}]);
 });
 
 test('a commit with no GitHub account gives authorLogin null', async () => {
@@ -48,4 +49,17 @@ test('a commit the server does not know is COMMIT_NOT_FOUND, other errors REMOTE
   await assert.rejects(run(`failed to list commits: GET https://api.github.com/repos/mchen6/countinghouse/commits?sha=${SHA}: 404 Not Found []`), (e) => e.code === 'COMMIT_NOT_FOUND');
   await assert.rejects(run('failed to list commits: 422 No commit found for SHA: ' + SHA), (e) => e.code === 'COMMIT_NOT_FOUND');
   await assert.rejects(run('failed to list commits: 502 Bad Gateway'), (e) => e.code === 'REMOTE_FAILED' && /502/.test(e.details.serverText));
+});
+
+// From /code-review medium on ch-access-github#1.
+test('a stray 404 or 422 in the server\'s words is not a missing commit', async () => {
+  const err = (text) => ({result: {isError: true, content: [{type: 'text', text}]}});
+  const run = (text) => runCommits({repo: 'mchen6/countinghouse', commit: SHA}, fakeCtx({list_commits: err(text)}));
+  await assert.rejects(run('failed to list commits for acme/404: 502 Bad Gateway'), (e) => e.code === 'REMOTE_FAILED');
+  await assert.rejects(run('rate limit: 422 requests left, 503 Service Unavailable'), (e) => e.code === 'REMOTE_FAILED');
+});
+
+test('an answer that is not a list of commits is REMOTE_ANSWER_INVALID', async () => {
+  const wrapped = {result: {content: [{type: 'text', text: JSON.stringify({items: body('list_commits')})}]}};
+  await assert.rejects(runCommits({repo: 'mchen6/countinghouse', commit: SHA}, fakeCtx({list_commits: wrapped})), (e) => e.code === 'REMOTE_ANSWER_INVALID');
 });
