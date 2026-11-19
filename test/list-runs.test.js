@@ -1,7 +1,6 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
-require('./support');
 const {fakeCtx, fixture, body} = require('./fake-ctx');
 const listRuns = require('../handlers/githubService/listRuns');
 
@@ -44,7 +43,7 @@ test('listRuns passes a branch filter through', async () => {
 
 test('listRuns validates its input', async () => {
   const ctx = fakeCtx({});
-  const invalid = (err) => err.code === 'ARGUMENTS_INVALID';
+  const invalid = (err) => err.code === 'INPUT_REJECTED';
   for (const bad of [null, {}, {repo: 'mchen6', limit: 5}, {repo: 'a/b/c', limit: 5}, {repo: 'a/b', limit: 0}, {repo: 'a/b', limit: 101}, {repo: 'a/b', limit: 2.5}, {repo: 'a/b', limit: 5, branch: 3}, {repo: 'a/b', limit: 5, branch: ''}]) {
     await assert.rejects(listRuns(bad, ctx), invalid, JSON.stringify(bad));
   }

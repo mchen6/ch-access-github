@@ -8,7 +8,7 @@ const PER_PAGE = 100;
 
 module.exports = async (input, ctx) => {
   const where = parseRepo(input != null ? input.repo : null);
-  if (where == null) throw invalid('repo must be "owner/name"');
-  if (!isId(input.runId)) throw invalid('runId must be a run id, as digits');
+  if (where == null) throw invalid(ctx, 'repo must be "owner/name"');
+  if (!isId(input.runId)) throw invalid(ctx, 'runId must be a run id, as digits');
   return {output: {jobs: await collectFailedJobs(ctx, {...where, runId: input.runId}, PER_PAGE)}};
 };

@@ -6,8 +6,8 @@ const {parseRepo, isSha, invalid} = require('../../lib/input');
 
 module.exports = async (input, ctx) => {
   const where = parseRepo(input != null ? input.repo : null);
-  if (where == null) throw invalid('repo must be "owner/name"');
-  if (!isSha(input.commit)) throw invalid('commit must be a full 40-character commit SHA');
+  if (where == null) throw invalid(ctx, 'repo must be "owner/name"');
+  if (!isSha(input.commit)) throw invalid(ctx, 'commit must be a full 40-character commit SHA');
   // Only the fields read: names, emails and the message never cross into the module.
   const {error, body} = await request(ctx, 'runCommits', {...where, sha: input.commit, perPage: 1, fields: ['sha', 'author']});
   // An unknown SHA: GitHub answers 404 Not Found, or 422 "No commit found for SHA".

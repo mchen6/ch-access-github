@@ -20,15 +20,30 @@ test('a tool rename is one table entry: no handler names a tool', () => {
   }
 });
 
+// countinghouse's logger step 1 removed the DeviceError and CHError globals:
+// a module's own failure is ctx.error with its own code.
+test('no handler or lib file reaches for an error global the runtime no longer gives', () => {
+  const files = [...handlers, ...fs.readdirSync(path.join(ROOT, 'lib')).map((f) => path.join(ROOT, 'lib', f))];
+  for (const file of files) {
+    const src = fs.readFileSync(file, 'utf8');
+    assert.ok(!/new (DeviceError|CHError)\b|\b(DeviceError|CHError)\(/.test(src), `${path.relative(ROOT, file)} uses a removed error global`);
+  }
+});
+
 test('every tool in the table is one the recorded server offers', () => {
   const offered = new Set(require('./fixtures/mcp-results/tools-list.json').tools.map((t) => t.name));
   for (const [action, {tool}] of Object.entries(TOOLS)) assert.ok(offered.has(tool), `${action} -> ${tool}`);
 });
 
-test('the package declares the GitHub remote exactly as the plan writes it', () => {
+// #413 rev 3 section 6.1 (P2): the short form. "credential": "GITHUB_TOKEN"
+// is {"env": "GITHUB_TOKEN", "header": "Authorization", "scheme": "Bearer"},
+// and the transport defaults to "streamable-http". No fallbackEnv: under a
+// version 2 credentials file the credential is the module's own, stored by
+// `ch-local credentials add ch-access-github`.
+test('the package declares the GitHub remote in the short form', () => {
   assert.deepStrictEqual(require('../package.json').countinghouse, {
     role: 'part',
-    remotes: [{name: 'github', transport: 'streamable-http', url: 'https://api.githubcopilot.com/mcp/', headers: {'X-MCP-Toolsets': 'actions,repos'}, credential: {env: 'COUNTINGHOUSE_GITHUB_TOKEN', fallbackEnv: 'GITHUB_TOKEN', header: 'Authorization', scheme: 'Bearer'}}]
+    remotes: [{name: 'github', url: 'https://api.githubcopilot.com/mcp/', headers: {'X-MCP-Toolsets': 'actions,repos'}, credential: 'GITHUB_TOKEN'}]
   });
 });
 

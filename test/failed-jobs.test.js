@@ -1,7 +1,6 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
-require('./support');
 const {fakeCtx, fixture, body} = require('./fake-ctx');
 const failedJobs = require('../handlers/githubService/failedJobs');
 const {collectFailedJobs} = require('../lib/jobs');
@@ -49,7 +48,7 @@ test('a jobs list without a numeric total_count is REMOTE_ANSWER_INVALID, never 
 
 test('failedJobs validates its input', async () => {
   const ctx = fakeCtx({});
-  const invalid = (err) => err.code === 'ARGUMENTS_INVALID';
+  const invalid = (err) => err.code === 'INPUT_REJECTED';
   for (const bad of [null, {}, {repo: 'a/b'}, {repo: 'a/b', runId: 42}, {repo: 'a/b', runId: 'x1'}, {repo: 'ab', runId: '1'}]) {
     await assert.rejects(failedJobs(bad, ctx), invalid, JSON.stringify(bad));
   }
