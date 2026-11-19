@@ -16,7 +16,9 @@ declared as the remote `github` in the short form, `"credential":
 "GITHUB_TOKEN"`: the runtime sends it as `Authorization: Bearer <token>`,
 and only to `https://api.githubcopilot.com`. The token is this module's
 own credential, stored with `ch-local credentials add ch-access-github`
-(a token stored by an earlier ch-local is carried over). It is held by the
+(a token an earlier release of ch-local stored is carried over; a
+development home that bound one to 0.1.0 under `COUNTINGHOUSE_GITHUB_TOKEN`
+adds it again). It is held by the
 runtime and never reaches this module.
 
 | Action | Input | Output |
