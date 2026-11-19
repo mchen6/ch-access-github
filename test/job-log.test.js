@@ -1,7 +1,6 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
-require('./support');
 const {fakeCtx, fixture, body} = require('./fake-ctx');
 const jobLog = require('../handlers/githubService/jobLog');
 const {expiryOf} = require('../lib/remote');
@@ -68,7 +67,7 @@ test('a trailing newline is not a line', async () => {
 
 test('jobLog validates its input', async () => {
   const ctx = fakeCtx({});
-  const invalid = (err) => err.code === 'ARGUMENTS_INVALID';
+  const invalid = (err) => err.code === 'INPUT_REJECTED';
   for (const bad of [null, {}, {repo: 'a/b'}, {repo: 'a/b', jobId: 5}, {repo: 'a/b', jobId: '5a'}, {repo: 'a', jobId: '5'}]) {
     await assert.rejects(jobLog(bad, ctx), invalid, JSON.stringify(bad));
   }

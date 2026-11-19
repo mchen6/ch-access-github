@@ -1,7 +1,6 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
-require('./support');
 const {fakeCtx, fixture, body} = require('./fake-ctx');
 const runCommits = require('../handlers/githubService/runCommits');
 
@@ -35,7 +34,7 @@ test('the commit answered is the one asked for, or the call fails', async () => 
 
 test('runCommits validates its input', async () => {
   const ctx = fakeCtx({});
-  const invalid = (err) => err.code === 'ARGUMENTS_INVALID';
+  const invalid = (err) => err.code === 'INPUT_REJECTED';
   for (const bad of [null, {}, {repo: 'a/b'}, {repo: 'a/b', commit: 'xyz'}, {repo: 'a/b', commit: 'abc'}, {repo: 'a', commit: SHA}]) {
     await assert.rejects(runCommits(bad, ctx), invalid, JSON.stringify(bad));
   }

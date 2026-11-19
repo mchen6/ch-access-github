@@ -11,8 +11,8 @@ const lineCount = (text) => (text === '' ? 0 : text.split('\n').length - (text.e
 
 module.exports = async (input, ctx) => {
   const where = parseRepo(input != null ? input.repo : null);
-  if (where == null) throw invalid('repo must be "owner/name"');
-  if (!isId(input.jobId)) throw invalid('jobId must be a job id, as digits');
+  if (where == null) throw invalid(ctx, 'repo must be "owner/name"');
+  if (!isId(input.jobId)) throw invalid(ctx, 'jobId must be a job id, as digits');
   const {error, body} = await request(ctx, 'jobLog', {...where, job_id: Number(input.jobId), return_content: true, tail_lines: TAIL_LINES});
   if (error != null) {
     if (expiryOf(error)) return {output: {text: '', lines: 0, bytes: 0, expired: true, truncated: false}};

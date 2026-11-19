@@ -20,6 +20,16 @@ test('a tool rename is one table entry: no handler names a tool', () => {
   }
 });
 
+// countinghouse's logger step 1 removed the DeviceError and CHError globals:
+// a module's own failure is ctx.error with its own code.
+test('no handler or lib file reaches for an error global the runtime no longer gives', () => {
+  const files = [...handlers, ...fs.readdirSync(path.join(ROOT, 'lib')).map((f) => path.join(ROOT, 'lib', f))];
+  for (const file of files) {
+    const src = fs.readFileSync(file, 'utf8');
+    assert.ok(!/new (DeviceError|CHError)\b|\b(DeviceError|CHError)\(/.test(src), `${path.relative(ROOT, file)} uses a removed error global`);
+  }
+});
+
 test('every tool in the table is one the recorded server offers', () => {
   const offered = new Set(require('./fixtures/mcp-results/tools-list.json').tools.map((t) => t.name));
   for (const [action, {tool}] of Object.entries(TOOLS)) assert.ok(offered.has(tool), `${action} -> ${tool}`);
