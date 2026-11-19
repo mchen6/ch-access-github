@@ -2,20 +2,22 @@
 
 countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that the runtime sends to GitHub and this module never sees.
 
-**Status: preview, waiting for the runtime's remotes (RC1-min).** Runs on
-[countinghouse](https://github.com/mchen6/countinghouse) once it can call a
-remote MCP server on a module's behalf. The `countinghouse.remotes`
-declaration in package.json is the pack plan's, and cannot be validated
-until that runtime exists. An access module of the countinghouse client
+**Status: preview.** Runs on
+[countinghouse](https://github.com/mchen6/countinghouse), which calls a
+remote MCP server on a module's behalf. `npm run validate` checks the
+`countinghouse.remotes` declaration against the pinned runtime. An access module of the countinghouse client
 packs: a `part`, loaded by a scenario and never listed to the model on its own.
 
 ## What it does
 
 `ch-access-github/githubService` reads GitHub Actions through GitHub's MCP
 server (`https://api.githubcopilot.com/mcp/`, toolsets `actions,repos`),
-declared as the remote `github`. The token comes from
-`COUNTINGHOUSE_GITHUB_TOKEN` (or `GITHUB_TOKEN`), is held by the runtime,
-and never reaches this module.
+declared as the remote `github` in the short form, `"credential":
+"GITHUB_TOKEN"`: the runtime sends it as `Authorization: Bearer <token>`,
+and only to `https://api.githubcopilot.com`. The token is this module's
+own credential, stored with `ch-local credentials add ch-access-github`
+(a token stored by an earlier ch-local is carried over). It is held by the
+runtime and never reaches this module.
 
 | Action | Input | Output |
 |---|---|---|

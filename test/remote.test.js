@@ -35,10 +35,15 @@ test('every tool in the table is one the recorded server offers', () => {
   for (const [action, {tool}] of Object.entries(TOOLS)) assert.ok(offered.has(tool), `${action} -> ${tool}`);
 });
 
-test('the package declares the GitHub remote exactly as the plan writes it', () => {
+// #413 rev 3 section 6.1 (P2): the short form. "credential": "GITHUB_TOKEN"
+// is {"env": "GITHUB_TOKEN", "header": "Authorization", "scheme": "Bearer"},
+// and the transport defaults to "streamable-http". No fallbackEnv: under a
+// version 2 credentials file the credential is the module's own, stored by
+// `ch-local credentials add ch-access-github`.
+test('the package declares the GitHub remote in the short form', () => {
   assert.deepStrictEqual(require('../package.json').countinghouse, {
     role: 'part',
-    remotes: [{name: 'github', transport: 'streamable-http', url: 'https://api.githubcopilot.com/mcp/', headers: {'X-MCP-Toolsets': 'actions,repos'}, credential: {env: 'COUNTINGHOUSE_GITHUB_TOKEN', fallbackEnv: 'GITHUB_TOKEN', header: 'Authorization', scheme: 'Bearer'}}]
+    remotes: [{name: 'github', url: 'https://api.githubcopilot.com/mcp/', headers: {'X-MCP-Toolsets': 'actions,repos'}, credential: 'GITHUB_TOKEN'}]
   });
 });
 
