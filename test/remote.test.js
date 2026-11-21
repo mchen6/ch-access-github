@@ -43,7 +43,7 @@ test('every tool in the table is one the recorded server offers', () => {
 test('the package declares the GitHub remote in the short form', () => {
   assert.deepStrictEqual(require('../package.json').countinghouse, {
     role: 'part',
-    remotes: [{name: 'github', url: 'https://api.githubcopilot.com/mcp/', headers: {'X-MCP-Readonly': 'true', 'X-MCP-Tools': 'actions_list,get_job_logs,list_commits'}, credential: 'GITHUB_TOKEN'}]
+    remotes: [{name: 'github', url: 'https://api.githubcopilot.com/mcp/', headers: {'X-MCP-Toolsets': 'actions,repos', 'X-MCP-Readonly': 'true', 'X-MCP-Tools': 'actions_list,get_job_logs,list_commits'}, credential: 'GITHUB_TOKEN'}]
   });
 });
 

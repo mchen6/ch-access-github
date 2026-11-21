@@ -11,11 +11,16 @@ packs: a `part`, loaded by a scenario and never listed to the model on its own.
 ## What it does
 
 `ch-access-github/githubService` reads GitHub Actions through GitHub's MCP
-server (`https://api.githubcopilot.com/mcp/`), asking it for read-only
-tools only (`X-MCP-Readonly: true`) and for just the three it calls,
-`actions_list`, `get_job_logs` and `list_commits` (`X-MCP-Tools`, with no
-`X-MCP-Toolsets`: GitHub adds named tools to toolsets rather than filtering
-them). Both headers are GitHub's, in
+server (`https://api.githubcopilot.com/mcp/`), asking it for the
+`actions` and `repos` toolsets only (`X-MCP-Toolsets`: the narrowest that
+holds the three tools it calls, `actions_list`, `get_job_logs` and
+`list_commits`, which it also names in `X-MCP-Tools`) and for read-only
+tools only (`X-MCP-Readonly: true`, which GitHub applies over any other
+setting). So the token is used with the read-only tools of those two
+toolsets. GitHub adds the tools `X-MCP-Tools` names to the toolsets rather
+than filtering them, and its docs don't say that `X-MCP-Tools` alone keeps
+the server from loading its default toolsets, so the toolsets stay set. The
+headers are GitHub's, in
 https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md;
 the server honours them, so they narrow what the token is used for, but the
 token's own permissions are the boundary,

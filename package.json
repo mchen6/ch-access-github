@@ -30,6 +30,7 @@
         "name": "github",
         "url": "https://api.githubcopilot.com/mcp/",
         "headers": {
+          "X-MCP-Toolsets": "actions,repos",
           "X-MCP-Readonly": "true",
           "X-MCP-Tools": "actions_list,get_job_logs,list_commits"
         },
