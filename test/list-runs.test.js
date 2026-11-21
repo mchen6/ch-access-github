@@ -76,3 +76,10 @@ test('a refused listing names its cause: 404 (not found or no access), 401, 403'
     await assert.rejects(listRuns({repo: 'o/r', limit: 5}, ctx), (err) => err.code === 'REMOTE_FAILED' && said.test(err.message), status);
   }
 });
+
+test('the status is the last the text gives, and a rate limit it names is said as one', async () => {
+  const answer = (text) => ({result: {content: [{type: 'text', text}], isError: true}});
+  const said = async (text) => listRuns({repo: 'o/r', limit: 5}, fakeCtx({actions_list: answer(text)})).catch((e) => e.message);
+  assert.match(await said('rate limit: 401 requests left, 503 Service Unavailable'), /could not list the runs of o\/r$/);
+  assert.match(await said('GET https://github.invalid/repos/o/r/actions/runs: 403 API rate limit exceeded for user ID 1.'), /: a rate limit was hit \(403\)$/);
+});

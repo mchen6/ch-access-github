@@ -71,3 +71,8 @@ test('a commit refusal names its cause, with the permission commits need', async
   await assert.rejects(run(`failed to list commits: GET https://github.invalid/repos/o/r/commits?sha=${SHA}: 404 Not Found []`), (e) => e.code === 'COMMIT_NOT_FOUND' && /or the token cannot see o\/r \(404\)$/.test(e.message));
   await assert.rejects(run('failed to list commits: 403 Forbidden []'), (e) => e.code === 'REMOTE_FAILED' && /the token may not read Contents there/.test(e.message));
 });
+
+test('a commit\'s 404 without its reason phrase is still COMMIT_NOT_FOUND', async () => {
+  const err = (text) => ({result: {isError: true, content: [{type: 'text', text}]}});
+  await assert.rejects(runCommits({repo: 'o/r', commit: SHA}, fakeCtx({list_commits: err('failed to list commits: unexpected status code: 404')})), (e) => e.code === 'COMMIT_NOT_FOUND');
+});
