@@ -48,7 +48,7 @@ module reads. Prefer the fine-grained token.
 | `jobLog` | `{repo, jobId}` | `{text, lines, bytes, expired, truncated}`. A large log may come back as its tail, its last lines only: `truncated: true` says so. A log past retention or gone (410/404) is `expired: true`, not an error. Any other failure is `LOG_UNAVAILABLE`, with the server's text in `details.serverText` |
 | `runCommits` | `{repo, commit}` | `{commit, authorLogin}`: a GitHub login, never a name or an email |
 
-A refusal from GitHub is `REMOTE_FAILED` (`LOG_UNAVAILABLE` for a log), its message naming the cause the status gives: 404, not found or the token cannot see it; 401, the token refused; 403, access denied or a rate limit. The server's own text is in `details.serverText`.
+A refusal from GitHub is `REMOTE_FAILED` (`LOG_UNAVAILABLE` for a log), its message naming the cause the status gives: 401, the token refused; 403, access denied (the permission the action needs: Actions, or Contents for `runCommits`) or a rate limit; 429, a rate limit; and for `listRuns` and `failedJobs`, 404, not found or the token cannot see it. A 404 is `COMMIT_NOT_FOUND` for `runCommits` (the commit is not there, or the token cannot see the repository) and `expired: true` for `jobLog`. The server's own text is in `details.serverText`.
 
 Every output object refuses fields it does not name. `lib/remote.js` is the
 one place a tool is named, so a rename on GitHub's side is one table entry.

@@ -68,9 +68,9 @@ test('a second text part after the JSON does not spoil the answer', async () => 
 // The final pass on the packs (A12): only the message reaches the model, so
 // it names the cause GitHub's status gives.
 test('a refused listing names its cause: 404 (not found or no access), 401, 403', async () => {
-  const answer = (status) => ({result: {content: [{type: 'text', text: `failed to list workflow runs: GET https://api.github.com/repos/o/r/actions/runs?per_page=5: ${status} []`}], isError: true}});
+  const answer = (status) => ({result: {content: [{type: 'text', text: `failed to list workflow runs: GET https://github.invalid/repos/o/r/actions/runs?per_page=5: ${status} []`}], isError: true}});
   const cases = [['404 Not Found', /not found, or the token cannot see it \(404\)/], ['401 Unauthorized', /the token was refused \(401: missing, expired or revoked\)/],
-    ['403 Forbidden', /access denied \(403\): the token may not read Actions there, or a rate limit was hit/], ['502 Bad Gateway', /could not list the runs of o\/r$/]];
+    ['403 Forbidden', /access denied \(403\): the token may not read Actions there, or a rate limit was hit/], ['429 Too Many Requests', /a rate limit was hit \(429\)$/], ['502 Bad Gateway', /could not list the runs of o\/r$/]];
   for (const [status, said] of cases) {
     const ctx = fakeCtx({actions_list: answer(status)});
     await assert.rejects(listRuns({repo: 'o/r', limit: 5}, ctx), (err) => err.code === 'REMOTE_FAILED' && said.test(err.message), status);

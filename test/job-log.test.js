@@ -89,3 +89,8 @@ test('a refused log names its cause', async () => {
   const ctx = fakeCtx({get_job_logs: {result: {content: [{type: 'text', text: 'failed to get job logs: unexpected status code: 401 Unauthorized'}], isError: true}}});
   await assert.rejects(jobLog({repo: 'o/r', jobId: '7'}, ctx), (err) => err.code === 'LOG_UNAVAILABLE' && /unavailable: the token was refused \(401/.test(err.message));
 });
+
+test('a status with no reason phrase still names its cause', async () => {
+  const ctx = fakeCtx({get_job_logs: {result: {content: [{type: 'text', text: 'failed to get job logs: unexpected status code: 403'}], isError: true}}});
+  await assert.rejects(jobLog({repo: 'o/r', jobId: '7'}, ctx), (err) => /unavailable: access denied \(403\): the token may not read Actions there/.test(err.message));
+});
