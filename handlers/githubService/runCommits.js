@@ -1,7 +1,7 @@
 'use strict';
 // ch-access-github/githubService.runCommits: {repo, commit} -> {commit,
 // authorLogin}: the GitHub login of the commit's author, never a name or email.
-const {request} = require('../../lib/remote');
+const {request, causeOf} = require('../../lib/remote');
 const {parseRepo, isSha, invalid} = require('../../lib/input');
 
 module.exports = async (input, ctx) => {
@@ -12,7 +12,7 @@ module.exports = async (input, ctx) => {
   const {error, body} = await request(ctx, 'runCommits', {...where, sha: input.commit, perPage: 1, fields: ['sha', 'author']});
   // An unknown SHA: GitHub answers 404 Not Found, or 422 "No commit found for SHA".
   if (error != null && /\b404 Not Found\b|\b422 Unprocessable Entity\b|No commit found/.test(error)) throw ctx.error('COMMIT_NOT_FOUND', `commit ${input.commit} is not in ${input.repo}`, {serverText: error});
-  if (error != null) throw ctx.error('REMOTE_FAILED', `GitHub's server could not read commit ${input.commit}`, {serverText: error});
+  if (error != null) throw ctx.error('REMOTE_FAILED', `GitHub's server could not read commit ${input.commit}${causeOf(error)}`, {serverText: error});
   if (!Array.isArray(body)) throw ctx.error('REMOTE_ANSWER_INVALID', `GitHub's server answered commit ${input.commit} with something that is not a list of commits`);
   const first = body[0];
   if (first == null || first.sha !== input.commit) throw ctx.error('COMMIT_NOT_FOUND', `commit ${input.commit} is not in ${input.repo}`);

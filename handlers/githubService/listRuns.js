@@ -1,6 +1,6 @@
 'use strict';
 // ch-access-github/githubService.listRuns: {repo, branch?, limit} -> {runs}.
-const {request} = require('../../lib/remote');
+const {request, causeOf} = require('../../lib/remote');
 const {parseRepo, invalid} = require('../../lib/input');
 
 module.exports = async (input, ctx) => {
@@ -10,7 +10,7 @@ module.exports = async (input, ctx) => {
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw invalid(ctx, 'limit must be an integer from 1 to 100');
   if (branch !== undefined && (typeof branch !== 'string' || branch === '')) throw invalid(ctx, 'branch, when given, must be a branch name');
   const {error, body} = await request(ctx, 'listRuns', {...where, perPage: limit, ...(branch !== undefined ? {workflow_runs_filter: {branch}} : {})});
-  if (error != null) throw ctx.error('REMOTE_FAILED', `GitHub's server could not list the runs of ${input.repo}`, {serverText: error});
+  if (error != null) throw ctx.error('REMOTE_FAILED', `GitHub's server could not list the runs of ${input.repo}${causeOf(error)}`, {serverText: error});
   if (body == null || !Array.isArray(body.workflow_runs)) throw ctx.error('REMOTE_ANSWER_INVALID', `GitHub's server answered the runs of ${input.repo} without a runs list`);
   // Only these fields leave: head_commit (names and emails) never does.
   const runs = body.workflow_runs.slice(0, limit).map((r) => ({
