@@ -45,8 +45,10 @@ module reads. Prefer the fine-grained token.
 |---|---|---|
 | `listRuns` | `{repo, branch?, limit<=100}` | `{runs: [{runId, conclusion, commit, branch, createdAt, workflow, url}]}`, with GitHub's own conclusion (null while in progress) and every workflow |
 | `failedJobs` | `{repo, runId}` | `{jobs: [{jobId, name, conclusion, steps: [{name, conclusion}]}]}`, the failed and timed-out jobs, every page of them |
-| `jobLog` | `{repo, jobId}` | `{text, lines, bytes, expired, truncated}`. A log past retention or gone (410/404) is `expired: true`, not an error. Any other failure is `LOG_UNAVAILABLE`, with the server's text in `details.serverText` |
+| `jobLog` | `{repo, jobId}` | `{text, lines, bytes, expired, truncated}`. A large log may come back as its tail, its last lines only: `truncated: true` says so. A log past retention or gone (410/404) is `expired: true`, not an error. Any other failure is `LOG_UNAVAILABLE`, with the server's text in `details.serverText` |
 | `runCommits` | `{repo, commit}` | `{commit, authorLogin}`: a GitHub login, never a name or an email |
+
+A refusal from GitHub is `REMOTE_FAILED` (`LOG_UNAVAILABLE` for a log), its message naming the cause the status gives: 401, the token refused; 403, access denied (the permission the action needs: Actions, or Contents for `runCommits`) or a rate limit; 429, a rate limit; and for `listRuns` and `failedJobs`, 404, not found or the token cannot see it. A 404 is `COMMIT_NOT_FOUND` for `runCommits` (the commit is not there, or the token cannot see the repository) and `expired: true` for `jobLog`. The server's own text is in `details.serverText`.
 
 Every output object refuses fields it does not name. `lib/remote.js` is the
 one place a tool is named, so a rename on GitHub's side is one table entry.
@@ -55,8 +57,9 @@ The tests run against responses recorded once from GitHub's server
 (`test/fixtures/mcp-results`, described in its README). Tokens, emails,
 names and log lines are scrubbed from them. No test calls GitHub.
 
-Part of the countinghouse client packs. Each package has its own repository; the family's design, plan and acceptance
-tests are in [ch-packs](https://github.com/mchen6/ch-packs) (public).
+Part of the countinghouse client packs. Each package has its own repository. The family's design and plan are in
+[ch-packs](https://github.com/mchen6/ch-packs) (public); the end-to-end acceptance test, which installs every package and calls the
+tool, runs in [ch-local](https://github.com/mchen6/ch-local)'s CI.
 
 ## Development
 
@@ -66,9 +69,8 @@ npm test
 npm run validate   # packs the module and runs countinghouse-validate on the tarball
 ```
 
-Pure JavaScript, no native module. Node 24 or later today (the runtime's
-floor); 22.16 once countinghouse's floor shim lands (design). CI runs on
-Linux, macOS and Windows.
+Pure JavaScript, no native module. Node 22.16 or later, as countinghouse. CI
+runs Node 24 on Linux, macOS and Windows.
 
 ## Publishing
 

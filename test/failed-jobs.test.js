@@ -62,3 +62,9 @@ test('a job list longer than the page cap is an error, never a silent partial li
   const ctx = fakeCtx({actions_list: (args) => (args.page === 1 ? page : many)});
   await assert.rejects(collectFailedJobs(ctx, {owner: 'mchen6', repo: 'countinghouse', runId: '42775507169'}, 2), (err) => err.code === 'JOBS_INCOMPLETE');
 });
+
+// (the final pass on the packs, A12) The message names the status's cause.
+test('a refused job listing names its cause', async () => {
+  const ctx = fakeCtx({actions_list: {result: {content: [{type: 'text', text: 'failed to list workflow jobs: GET https://github.invalid/repos/o/r/actions/runs/5/jobs: 403 Forbidden []'}], isError: true}}});
+  await assert.rejects(failedJobs({repo: 'o/r', runId: '5'}, ctx), (err) => err.code === 'REMOTE_FAILED' && /could not list the jobs of run 5: access denied \(403\)/.test(err.message));
+});

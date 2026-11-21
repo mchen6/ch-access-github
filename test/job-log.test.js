@@ -83,3 +83,14 @@ test('without original_length, a log that fills the requested tail is truncated'
   const small = await jobLog({repo: 'mchen6/countinghouse', jobId: '1'}, fakeCtx({get_job_logs: answer(lines(20))}));
   assert.deepStrictEqual([small.output.lines, small.output.truncated], [20, false]);
 });
+
+// (the final pass on the packs, A12) A refused log names the status's cause.
+test('a refused log names its cause', async () => {
+  const ctx = fakeCtx({get_job_logs: {result: {content: [{type: 'text', text: 'failed to get job logs: unexpected status code: 401 Unauthorized'}], isError: true}}});
+  await assert.rejects(jobLog({repo: 'o/r', jobId: '7'}, ctx), (err) => err.code === 'LOG_UNAVAILABLE' && /unavailable: the token was refused \(401/.test(err.message));
+});
+
+test('a status with no reason phrase still names its cause', async () => {
+  const ctx = fakeCtx({get_job_logs: {result: {content: [{type: 'text', text: 'failed to get job logs: unexpected status code: 403'}], isError: true}}});
+  await assert.rejects(jobLog({repo: 'o/r', jobId: '7'}, ctx), (err) => /unavailable: access denied \(403\): the token may not read Actions there/.test(err.message));
+});
