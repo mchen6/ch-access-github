@@ -11,7 +11,19 @@ packs: a `part`, loaded by a scenario and never listed to the model on its own.
 ## What it does
 
 `ch-access-github/githubService` reads GitHub Actions through GitHub's MCP
-server (`https://api.githubcopilot.com/mcp/`, toolsets `actions,repos`),
+server (`https://api.githubcopilot.com/mcp/`), asking it for the
+`actions` and `repos` toolsets only (`X-MCP-Toolsets`: the narrowest that
+holds the three tools it calls, `actions_list`, `get_job_logs` and
+`list_commits`, which it also names in `X-MCP-Tools`) and for read-only
+tools only (`X-MCP-Readonly: true`, which GitHub applies over any other
+setting). So the token is used with the read-only tools of those two
+toolsets. GitHub adds the tools `X-MCP-Tools` names to the toolsets rather
+than filtering them, and its docs don't say that `X-MCP-Tools` alone keeps
+the server from loading its default toolsets, so the toolsets stay set. The
+headers are GitHub's, in
+https://github.com/github/github-mcp-server/blob/main/docs/remote-server.md;
+the server honours them, so they narrow what the token is used for, but the
+token's own permissions are the boundary,
 declared as the remote `github` in the short form, `"credential":
 "GITHUB_TOKEN"`: the runtime sends it as `Authorization: Bearer <token>`,
 and only to `https://api.githubcopilot.com`. The token is this module's
@@ -20,6 +32,14 @@ own credential, stored with `ch-local credentials add ch-access-github`
 development home that bound one to 0.1.0 under `COUNTINGHOUSE_GITHUB_TOKEN`
 adds it again). It is held by the
 runtime and never reaches this module.
+
+The token it needs: a fine-grained personal access token, limited to the
+repositories you want triaged, with the repository permissions
+**Actions: Read-only** and **Contents: Read-only** (GitHub adds
+**Metadata: Read-only** itself). Nothing that writes. A classic token or a
+`gh` login works too, but usually carries the `repo` scope, which can
+write: if the headers above were ignored, it could reach far more than this
+module reads. Prefer the fine-grained token.
 
 | Action | Input | Output |
 |---|---|---|

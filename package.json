@@ -1,6 +1,6 @@
 {
   "name": "@countinghouse/ch-access-github",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "countinghouse access module for GitHub: workflow runs, failed jobs, job logs and commits through GitHub's remote MCP server, read-only, with a personal access token that the runtime sends to GitHub and this module never sees.",
   "license": "Apache-2.0",
   "repository": {
@@ -30,7 +30,9 @@
         "name": "github",
         "url": "https://api.githubcopilot.com/mcp/",
         "headers": {
-          "X-MCP-Toolsets": "actions,repos"
+          "X-MCP-Toolsets": "actions,repos",
+          "X-MCP-Readonly": "true",
+          "X-MCP-Tools": "actions_list,get_job_logs,list_commits"
         },
         "credential": "GITHUB_TOKEN"
       }
