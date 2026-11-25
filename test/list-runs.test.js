@@ -19,9 +19,10 @@ test('listRuns maps the server\'s fields and never returns emails', async () => 
     createdAt: '2026-11-10T07:28:18Z',
     workflow: 'CI',
     url: recorded.find((r) => r.id === 42775507169).html_url,
-    attempt: 1
+    attempt: 1,
+    workflowId: String(recorded.find((r) => r.id === 42775507169).workflow_id)
   });
-  for (const r of output.runs) assert.deepStrictEqual(Object.keys(r), ['runId', 'conclusion', 'commit', 'branch', 'createdAt', 'workflow', 'url', 'attempt']);
+  for (const r of output.runs) assert.deepStrictEqual(Object.keys(r), ['runId', 'conclusion', 'commit', 'branch', 'createdAt', 'workflow', 'url', 'attempt', 'workflowId']);
   const text = JSON.stringify(output);
   assert.ok(!text.includes('removed@example.invalid'), 'no email passes through');
   assert.ok(!text.includes('Example Author'), 'no git identity name passes through');
@@ -104,7 +105,7 @@ test('listRuns omits an attempt that is absent or malformed, never passing it th
   for (const bad of [undefined, null, 0, -1, 1.5, '2', true, [2], {n: 2}, Number.MAX_SAFE_INTEGER + 1]) {
     const r = await runWith(bad);
     assert.ok(!('attempt' in r), `${JSON.stringify(bad)}: ${JSON.stringify(r)}`);
-    assert.deepStrictEqual(Object.keys(r), ['runId', 'conclusion', 'commit', 'branch', 'createdAt', 'workflow', 'url']);
+    assert.deepStrictEqual(Object.keys(r), ['runId', 'conclusion', 'commit', 'branch', 'createdAt', 'workflow', 'url', 'workflowId']);
   }
 });
 

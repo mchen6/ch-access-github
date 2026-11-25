@@ -68,6 +68,11 @@
                   "title": "GitHub's attempt number; a re-run keeps the run id. Absent when GitHub gives none",
                   "type": "integer",
                   "minimum": 1
+                },
+                "workflowId": {
+                  "title": "GitHub's id of the run's workflow; absent when GitHub gives none",
+                  "type": "string",
+                  "pattern": "^[1-9]\\d{0,15}$"
                 }
               },
               "required": [

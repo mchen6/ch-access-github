@@ -43,7 +43,7 @@ module reads. Prefer the fine-grained token.
 
 | Action | Input | Output |
 |---|---|---|
-| `listRuns` | `{repo, branch?, limit<=100}` | `{runs: [{runId, conclusion, commit, branch, createdAt, workflow, url, attempt?}]}`, with GitHub's own conclusion (null while in progress) and every workflow |
+| `listRuns` | `{repo, branch?, limit<=100}` | `{runs: [{runId, conclusion, commit, branch, createdAt, workflow, url, attempt?, workflowId?}]}`, with GitHub's own conclusion (null while in progress) and every workflow. `branch` is null and `workflow` is empty when GitHub gives none. If a run has no id, commit, time or URL, the call answers `REMOTE_ANSWER_INVALID`; the list is never partial. |
 | `failedJobs` | `{repo, runId}` | `{jobs: [{jobId, name, conclusion, steps: [{name, conclusion}]}]}`, the failed and timed-out jobs, every page of them |
 | `jobLog` | `{repo, jobId}` | `{text, lines, bytes, expired, truncated}`. A large log may come back as its tail, its last lines only: `truncated: true` says so. A log past retention or gone (410/404) is `expired: true`, not an error. Any other failure is `LOG_UNAVAILABLE`, with the server's text in `details.serverText` |
 | `runCommits` | `{repo, commit}` | `{commit, authorLogin}`: a GitHub login, never a name or an email |
