@@ -18,9 +18,10 @@ test('listRuns maps the server\'s fields and never returns emails', async () => 
     branch: 'r2-1-task1',
     createdAt: '2026-11-10T07:28:18Z',
     workflow: 'CI',
-    url: recorded.find((r) => r.id === 42775507169).html_url
+    url: recorded.find((r) => r.id === 42775507169).html_url,
+    attempt: 1
   });
-  for (const r of output.runs) assert.deepStrictEqual(Object.keys(r), ['runId', 'conclusion', 'commit', 'branch', 'createdAt', 'workflow', 'url']);
+  for (const r of output.runs) assert.deepStrictEqual(Object.keys(r), ['runId', 'conclusion', 'commit', 'branch', 'createdAt', 'workflow', 'url', 'attempt']);
   const text = JSON.stringify(output);
   assert.ok(!text.includes('removed@example.invalid'), 'no email passes through');
   assert.ok(!text.includes('Example Author'), 'no git identity name passes through');
@@ -82,4 +83,35 @@ test('the status is the last the text gives, and a rate limit it names is said a
   const said = async (text) => listRuns({repo: 'o/r', limit: 5}, fakeCtx({actions_list: answer(text)})).catch((e) => e.message);
   assert.match(await said('rate limit: 401 requests left, 503 Service Unavailable'), /could not list the runs of o\/r$/);
   assert.match(await said('GET https://github.invalid/repos/o/r/actions/runs: 403 API rate limit exceeded for user ID 1.'), /: a rate limit was hit \(403\)$/);
+});
+
+// A re-run keeps its run id, so a caller that remembers a run needs GitHub's
+// attempt to know its jobs have changed. Only a real attempt number leaves.
+const withAttempt = (value) => {
+  const run = {...recorded[0]};
+  if (value === undefined) delete run.run_attempt; else run.run_attempt = value;
+  return {result: {content: [{type: 'text', text: JSON.stringify({total_count: 1, workflow_runs: [run]})}]}};
+};
+const runWith = async(value) => (await listRuns({repo: 'mchen6/countinghouse', limit: 1}, fakeCtx({actions_list: withAttempt(value)}))).output.runs[0];
+
+test('listRuns gives GitHub\'s attempt when it is a whole number from 1', async () => {
+  assert.strictEqual((await runWith(1)).attempt, 1);
+  assert.strictEqual((await runWith(3)).attempt, 3);
+  assert.strictEqual((await runWith(Number.MAX_SAFE_INTEGER)).attempt, Number.MAX_SAFE_INTEGER);
+});
+
+test('listRuns omits an attempt that is absent or malformed, never passing it through', async () => {
+  for (const bad of [undefined, null, 0, -1, 1.5, '2', true, [2], {n: 2}, Number.MAX_SAFE_INTEGER + 1]) {
+    const r = await runWith(bad);
+    assert.ok(!('attempt' in r), `${JSON.stringify(bad)}: ${JSON.stringify(r)}`);
+    assert.deepStrictEqual(Object.keys(r), ['runId', 'conclusion', 'commit', 'branch', 'createdAt', 'workflow', 'url']);
+  }
+});
+
+test('the output schema allows attempt as an optional whole number from 1', () => {
+  const item = require('../schema.json').githubService.listRuns.output.properties.runs.items;
+  assert.strictEqual(item.additionalProperties, false);
+  assert.strictEqual(item.properties.attempt.type, 'integer');
+  assert.strictEqual(item.properties.attempt.minimum, 1);
+  assert.ok(!item.required.includes('attempt'));
 });

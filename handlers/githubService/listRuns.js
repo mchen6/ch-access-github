@@ -12,7 +12,8 @@ module.exports = async (input, ctx) => {
   const {error, body} = await request(ctx, 'listRuns', {...where, perPage: limit, ...(branch !== undefined ? {workflow_runs_filter: {branch}} : {})});
   if (error != null) throw ctx.error('REMOTE_FAILED', `GitHub's server could not list the runs of ${input.repo}${causeOf(error)}`, {serverText: error});
   if (body == null || !Array.isArray(body.workflow_runs)) throw ctx.error('REMOTE_ANSWER_INVALID', `GitHub's server answered the runs of ${input.repo} without a runs list`);
-  // Only these fields leave: head_commit (names and emails) never does.
+  // Only these fields leave, attempt only when GitHub's is a whole number from
+  // 1 (a re-run keeps its run id): head_commit (names and emails) never does.
   const runs = body.workflow_runs.slice(0, limit).map((r) => ({
     runId: String(r.id),
     conclusion: r.conclusion != null ? r.conclusion : null, // null while the run is in progress
@@ -20,7 +21,8 @@ module.exports = async (input, ctx) => {
     branch: r.head_branch,
     createdAt: r.created_at,
     workflow: r.name,
-    url: r.html_url
+    url: r.html_url,
+    ...(Number.isSafeInteger(r.run_attempt) && r.run_attempt >= 1 ? {attempt: r.run_attempt} : {})
   }));
   return {output: {runs}};
 };

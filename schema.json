@@ -63,6 +63,11 @@
                 },
                 "url": {
                   "type": "string"
+                },
+                "attempt": {
+                  "title": "GitHub's attempt number; a re-run keeps the run id. Absent when GitHub gives none",
+                  "type": "integer",
+                  "minimum": 1
                 }
               },
               "required": [
