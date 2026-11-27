@@ -45,10 +45,10 @@ module reads. Prefer the fine-grained token.
 |---|---|---|
 | `listRuns` | `{repo, branch?, limit<=100}` | `{runs: [{runId, conclusion, commit, branch, createdAt, workflow, url, attempt?, workflowId?}]}`, with GitHub's own conclusion (null while in progress) and every workflow. `branch` is null and `workflow` is empty when GitHub gives none. If a run has no id, commit, time or URL, the call answers `REMOTE_ANSWER_INVALID`; the list is never partial. |
 | `failedJobs` | `{repo, runId}` | `{jobs: [{jobId, name, conclusion, steps: [{name, conclusion}]}]}`, the failed and timed-out jobs, every page of them |
-| `jobLog` | `{repo, jobId}` | `{text, lines, bytes, expired, truncated}`. A large log may come back as its tail, its last lines only: `truncated: true` says so. A log past retention or gone (410/404) is `expired: true`, not an error. Any other failure is `LOG_UNAVAILABLE`, with the server's text in `details.serverText` |
+| `jobLog` | `{repo, jobId}` | `{text, lines, bytes, expired, truncated}`. A large log may come back as its tail, its last lines only: `truncated: true` says so. A log past retention or gone (410/404) is `expired: true`, not an error. Any other error the server answers is `LOG_UNAVAILABLE`, with its text in `details.serverText`; an answer that is not JSON, or has no log text, is `REMOTE_ANSWER_INVALID`. |
 | `runCommits` | `{repo, commit}` | `{commit, authorLogin}`: a GitHub login, never a name or an email |
 
-A refusal from GitHub is `REMOTE_FAILED` (`LOG_UNAVAILABLE` for a log), its message naming the cause the status gives: 401, the token refused; 403, access denied (the permission the action needs: Actions, or Contents for `runCommits`) or a rate limit; 429, a rate limit; and for `listRuns` and `failedJobs`, 404, not found or the token cannot see it. A 404 is `COMMIT_NOT_FOUND` for `runCommits` (the commit is not there, or the token cannot see the repository) and `expired: true` for `jobLog`. The server's own text is in `details.serverText`.
+A refusal from GitHub is `REMOTE_FAILED` (`LOG_UNAVAILABLE` for a log), its message naming the cause the status gives: 401, the token refused; 403, access denied (the permission the action needs: Actions, or Contents for `runCommits`) or a rate limit; 429, a rate limit; and for `listRuns` and `failedJobs`, 404, not found or the token cannot see it. A 404 is `COMMIT_NOT_FOUND` for `runCommits` (the commit is not there, or the token cannot see the repository) and `expired: true` for `jobLog`. The server's own text is in `details.serverText`. A refusal that is certainly a rate limit (a 429, or a 403 whose text names one) also carries `details.rateLimited: true`: a caller should stop calling for now, as GitHub asks, since the answer it receives gives no time to wait for.
 
 Every output object refuses fields it does not name. `lib/remote.js` is the
 one place a tool is named, so a rename on GitHub's side is one table entry.
@@ -70,7 +70,7 @@ npm run validate   # packs the module and runs countinghouse-validate on the tar
 ```
 
 Pure JavaScript, no native module. Node 22.16 or later, as countinghouse. CI
-runs Node 24 on Linux, macOS and Windows.
+runs Node 24 on Linux, macOS and Windows, and Node 22.16, the floor, on Linux.
 
 ## Publishing
 
